@@ -9,6 +9,8 @@ using AlexaSkillsKit.Json;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.Bot.Connector.DirectLine;
+using System.Linq;
 
 namespace Azure4Alexa.Alexa
 {
@@ -39,6 +41,14 @@ namespace Azure4Alexa.Alexa
         }
 
         //#endif
+
+        private DirectLineClient dlClient;
+        private static string directLineSecret = "odJ5VKzB8oY.cwA.9E0.IkVvS809oGsfqJPFTe4kui6sYWbPXqUbSTUnLncIn_U";
+        private static string botId = "sftsrc";
+      // SG  private static string directLineSecret = "kojbPat0SZU.cwA.OUY.I0CO3yQyv_Ij3qtwEolPNOI6c09jI3LavJy5CaOKPgI";
+      // SG  private static string botId = "padnug07";
+        private string fromUser = "DirectLineSampleClientUser";
+        private ChannelAccount from;
 
         public override Task OnSessionStartedAsync(SessionStartedRequest sessionStartedRequest, Session session)
         {
@@ -98,6 +108,44 @@ namespace Azure4Alexa.Alexa
 
             return await Task.FromResult<SpeechletResponse>(GetOnLaunchAsyncResult(session));
         }
+
+        IDictionary<string, Conversation> conversations = new Dictionary<string, Conversation>();
+        IDictionary<string, string> watermarks = new Dictionary<string, string>();
+
+        string SendToBotFramework(string sessionId, string text)
+        {
+            dlClient = new DirectLineClient(directLineSecret);
+            //if (!conversations.ContainsKey(sessionId))
+           // {
+                // start a new conversation
+                conversations[sessionId] = dlClient.Conversations.StartConversation();
+                watermarks[sessionId] = null;
+           /* }
+            else
+            {
+                dlClient.Conversations.ReconnectToConversation(conversations[sessionId].ConversationId,
+                    watermarks[sessionId]);
+            }
+            */
+
+            Activity msg = new Activity
+            {
+                From = new ChannelAccount(sessionId),
+                Text = text,
+                Type = ActivityTypes.Message
+            };
+
+            dlClient.Conversations.PostActivity(conversations[sessionId].ConversationId, msg);
+            var activitySet = dlClient.Conversations.GetActivities(conversations[sessionId].ConversationId, watermarks[sessionId]);
+            watermarks[sessionId] = activitySet.Watermark;
+
+            var activities = from x in activitySet.Activities
+                             where x.From.Id == botId
+                             select x;
+
+            return activities.FirstOrDefault().Text;
+        }
+
         public override async Task<SpeechletResponse> OnIntentAsync(IntentRequest intentRequest, Session session)
         //        public override Task<SpeechletResponse> OnIntentAsync(IntentRequest intentRequest, Session session)
         {
@@ -135,6 +183,22 @@ namespace Azure4Alexa.Alexa
             {
 
                 // call the Transport for London (TFL) API and get status
+                case "CatchAllIntent":
+
+                    try
+                    {
+                        Debug.WriteLine("In CatchAllIntent!");
+                        string resp = SendToBotFramework(session.SessionId, intentRequest.Intent.Slots["CatchAll"].Value);
+
+                        return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
+                            new AlexaUtils.SimpleIntentResponse() { cardText = resp }, resp.Substring(1).StartsWith("oodbye"))); // false == should NOT end session
+                    } catch (Exception ex)
+                    {
+                        return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
+                            new AlexaUtils.SimpleIntentResponse() { cardText = ex.ToString() }, true)); 
+
+                    }
+
 
                 case ("TflStatusIntent"):
                     return await Tfl.Status.GetResults(session, httpClient);
@@ -202,7 +266,8 @@ namespace Azure4Alexa.Alexa
             // called by OnLaunchAsync - when the user invokes your skill without an intent
             // called by OnIntentAsync if you forget to map an intent to an action
 
-            return AlexaUtils.BuildSpeechletResponse(new AlexaUtils.SimpleIntentResponse() { cardText = "Thanks for giving us a try" }, true);
+            string resp = SendToBotFramework(session.SessionId, "hello");
+            return AlexaUtils.BuildSpeechletResponse(new AlexaUtils.SimpleIntentResponse() { cardText = resp }, false);
         }
 
 
