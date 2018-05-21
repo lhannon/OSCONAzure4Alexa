@@ -115,18 +115,18 @@ namespace Azure4Alexa.Alexa
         string SendToBotFramework(string sessionId, string text)
         {
             dlClient = new DirectLineClient(directLineSecret);
-            //if (!conversations.ContainsKey(sessionId))
-           // {
+            if (!conversations.ContainsKey(sessionId))
+            {
                 // start a new conversation
                 conversations[sessionId] = dlClient.Conversations.StartConversation();
                 watermarks[sessionId] = null;
-           /* }
+            }
             else
             {
                 dlClient.Conversations.ReconnectToConversation(conversations[sessionId].ConversationId,
                     watermarks[sessionId]);
             }
-            */
+            
 
             Activity msg = new Activity
             {
