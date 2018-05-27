@@ -23,6 +23,7 @@ namespace AlexaSkillsKit.Speechlet
         /// <returns></returns>
         public async virtual Task<HttpResponseMessage> GetResponseAsync(HttpRequestMessage httpRequest)
         {
+            Trace.TraceInformation("In GetResponseAsync");
             SpeechletRequestValidationResult validationResult = SpeechletRequestValidationResult.OK;
             DateTime now = DateTime.UtcNow; // reference time for this request
 
@@ -41,8 +42,7 @@ namespace AlexaSkillsKit.Speechlet
             }
 
             var alexaBytes = await httpRequest.Content.ReadAsByteArrayAsync();
-            Debug.WriteLine(httpRequest.ToLogString());
-
+            
             // attempt to verify signature only if we were able to locate certificate and signature headers
             if (validationResult == SpeechletRequestValidationResult.OK)
             {
@@ -83,7 +83,7 @@ namespace AlexaSkillsKit.Speechlet
                     ReasonPhrase = validationResult.ToString()
                 };
             }
-
+            Trace.TraceInformation("About to call DoProcessRequestAsync");
             string alexaResponse = await DoProcessRequestAsync(alexaRequest);
 
             HttpResponseMessage httpResponse;
@@ -135,7 +135,7 @@ namespace AlexaSkillsKit.Speechlet
         {
             Session session = requestEnvelope.Session;
             SpeechletResponse response = null;
-
+            Trace.TraceInformation("In DoProcessRequestAsync");
             // process launch request
             if (requestEnvelope.Request is LaunchRequest)
             {
@@ -145,6 +145,8 @@ namespace AlexaSkillsKit.Speechlet
                     await OnSessionStartedAsync(
                         new SessionStartedRequest(request.RequestId, request.Timestamp), session);
                 }
+                Trace.TraceInformation("request is LaunchRquest--about to call OnLaunchAsync");
+
                 response = await OnLaunchAsync(request, session);
             }
 
@@ -152,6 +154,7 @@ namespace AlexaSkillsKit.Speechlet
             else if (requestEnvelope.Request is IntentRequest)
             {
                 var request = requestEnvelope.Request as IntentRequest;
+                Trace.TraceInformation("In DoProcessRequestAsync, request is IntentRequest");
 
                 // Do session management prior to calling OnSessionStarted and OnIntentAsync 
                 // to allow dev to change session values if behavior is not desired
@@ -162,6 +165,8 @@ namespace AlexaSkillsKit.Speechlet
                     await OnSessionStartedAsync(
                         new SessionStartedRequest(request.RequestId, request.Timestamp), session);
                 }
+                Trace.TraceInformation("--about to call OnIntentAsync");
+
                 response = await OnIntentAsync(request, session);
             }
 
@@ -197,6 +202,8 @@ namespace AlexaSkillsKit.Speechlet
                 Response = response,
                 SessionAttributes = session.Attributes
             };
+
+            Trace.TraceInformation("Reached the bottom of DoProcessRequestAsync");
 
             return responseEnvelope.ToJson();
         }

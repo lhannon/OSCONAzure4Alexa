@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.Bot.Connector.DirectLine;
 using System.Linq;
+using Microsoft.ApplicationInsights.TraceListener;
 
 namespace Azure4Alexa.Alexa
 {
@@ -128,7 +129,7 @@ namespace Azure4Alexa.Alexa
             }
             
 
-            Activity msg = new Activity
+            Microsoft.Bot.Connector.DirectLine.Activity msg = new Microsoft.Bot.Connector.DirectLine.Activity
             {
                 From = new ChannelAccount(sessionId),
                 Text = text,
@@ -149,12 +150,15 @@ namespace Azure4Alexa.Alexa
         public override async Task<SpeechletResponse> OnIntentAsync(IntentRequest intentRequest, Session session)
         //        public override Task<SpeechletResponse> OnIntentAsync(IntentRequest intentRequest, Session session)
         {
+            Trace.TraceInformation("AlexaSpeechletAsync called");
+            
             // if the inbound request doesn't include your Alexa Skills AppId or you haven't updated your
             // code to include the correct AppId, return a visual and vocal error and do no more
             // Update the AppId variable in AlexaConstants.cs to resolve this issue
 
             if (AlexaUtils.IsRequestInvalid(session))
             {
+                Trace.TraceInformation("AlexaSpeechletAsync InvalidApplication");
                 return await Task.FromResult<SpeechletResponse>(InvalidApplicationId(session));
             }
 
@@ -178,16 +182,18 @@ namespace Azure4Alexa.Alexa
             // don't be evil and create a ton of them unnecessarily, as httpClient doesn't clean up after itself
 
             var httpClient = new HttpClient();
-
+            Trace.TraceInformation("AlexaSpeechletAsync called with intentName " + intentName);
             switch (intentName)
             {
 
                 // call the Transport for London (TFL) API and get status
                 case "CatchAllIntent":
+                case "AMAZON.FallbackIntent":
 
                     try
                     {
                         Debug.WriteLine("In CatchAllIntent!");
+
                         string resp = SendToBotFramework(session.SessionId, intentRequest.Intent.Slots["CatchAll"].Value);
 
                         return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(

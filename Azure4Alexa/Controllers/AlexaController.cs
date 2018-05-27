@@ -18,6 +18,7 @@ namespace Azure4Alexa.Controllers
         public async Task<HttpResponseMessage> AlexaSession()
         {
             var alexaSpeechletAsync = new Alexa.AlexaSpeechletAsync();
+            System.Diagnostics.Trace.TraceInformation("In AlexaSession");
             return await alexaSpeechletAsync.GetResponseAsync(Request);
         }
 
