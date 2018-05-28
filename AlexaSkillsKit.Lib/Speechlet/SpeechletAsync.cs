@@ -23,7 +23,7 @@ namespace AlexaSkillsKit.Speechlet
         /// <returns></returns>
         public async virtual Task<HttpResponseMessage> GetResponseAsync(HttpRequestMessage httpRequest)
         {
-            Trace.TraceInformation("In GetResponseAsync");
+            Trace.TraceInformation($"In GetResponseAsync with httpRequest {httpRequest}");
             SpeechletRequestValidationResult validationResult = SpeechletRequestValidationResult.OK;
             DateTime now = DateTime.UtcNow; // reference time for this request
 
@@ -203,7 +203,7 @@ namespace AlexaSkillsKit.Speechlet
                 SessionAttributes = session.Attributes
             };
 
-            Trace.TraceInformation("Reached the bottom of DoProcessRequestAsync");
+            Trace.TraceInformation($"Reached the bottom of DoProcessRequestAsync, requestEnvelope.Request is {requestEnvelope.Request.ToString()}");
 
             return responseEnvelope.ToJson();
         }

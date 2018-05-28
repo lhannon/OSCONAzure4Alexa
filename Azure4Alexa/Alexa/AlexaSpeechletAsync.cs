@@ -115,19 +115,23 @@ namespace Azure4Alexa.Alexa
 
         string SendToBotFramework(string sessionId, string text)
         {
+            Trace.TraceInformation($"SendToBotFramework called with text {text}");
             dlClient = new DirectLineClient(directLineSecret);
             if (!conversations.ContainsKey(sessionId))
             {
                 // start a new conversation
+                Trace.TraceInformation($"SendToBotFramework calling StartConversation");
                 conversations[sessionId] = dlClient.Conversations.StartConversation();
                 watermarks[sessionId] = null;
             }
             else
             {
+                Trace.TraceInformation($"SendToBotFramework calling ReconnectToConversation");
                 dlClient.Conversations.ReconnectToConversation(conversations[sessionId].ConversationId,
                     watermarks[sessionId]);
             }
-            
+
+            Trace.TraceInformation($"SendToBotFramework constructing a message with text {text}");
 
             Microsoft.Bot.Connector.DirectLine.Activity msg = new Microsoft.Bot.Connector.DirectLine.Activity
             {
@@ -143,7 +147,11 @@ namespace Azure4Alexa.Alexa
             var activities = from x in activitySet.Activities
                              where x.From.Id == botId
                              select x;
-
+            Trace.TraceInformation($"Received {activities.Count()} activities from dlClient.Conversations.GetActivities");
+            foreach (var x in activities)
+            {
+                Trace.TraceInformation($"Activity gotten has texxt {x.Text}");
+            }
             return activities.FirstOrDefault().Text;
         }
 
@@ -185,19 +193,17 @@ namespace Azure4Alexa.Alexa
             Trace.TraceInformation("AlexaSpeechletAsync called with intentName " + intentName);
             switch (intentName)
             {
-
-                // call the Transport for London (TFL) API and get status
                 case "CatchAllIntent":
-                case "AMAZON.FallbackIntent":
-
                     try
                     {
                         Debug.WriteLine("In CatchAllIntent!");
-
-                        string resp = SendToBotFramework(session.SessionId, intentRequest.Intent.Slots["CatchAll"].Value);
+                        Trace.TraceInformation($"In CatchAllIntent, intent is {intentName}");
+                        
+                        Trace.TraceInformation($"In CatchAllIntent, intentRequest.Intent.Slots.Length is {intentRequest.Intent.Slots.Count}");
+                        string resp = SendToBotFramework(session.SessionId, intentRequest.Intent.Slots["Search"].Value);
 
                         return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
-                            new AlexaUtils.SimpleIntentResponse() { cardText = resp }, resp.Substring(1).StartsWith("oodbye"))); // false == should NOT end session
+                            new AlexaUtils.SimpleIntentResponse() { cardText = resp }, true)); // false == should NOT end session
                     } catch (Exception ex)
                     {
                         return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
@@ -205,52 +211,11 @@ namespace Azure4Alexa.Alexa
 
                     }
 
-
-                case ("TflStatusIntent"):
-                    return await Tfl.Status.GetResults(session, httpClient);
-                //return Task.FromResult<SpeechletResponse>(Tfl.Status.GetResults(session, httpClient));
-
-                // Advanced: call the Outlook API and read the number of unread emails and subject and sender of the first five
-                // you will need to register for a Client ID with Microsoft and configure your skill for Oauth
-                // uncomment the code below when you're ready
-
-                // See README.md in the Outlook folder
-
-                //case ("OutlookUnreadIntent"):
-                //    return await Outlook.Mail.GetUnreadEmailCount(session, httpClient);
-                //return Task.FromResult<SpeechletResponse>(Outlook.Mail.GetUnreadEmailCount(session, httpClient));
-
-                // If you're feeling lucky - this intent reads your Outlook calendar
-                // You need to first successfully configure the email skill that's above
-
-                // Add these scopes to the Alexa Config Portal
-                // https://outlook.office.com/calendars.read
-                // https://outlook.office.com/mailboxsettings.readwrite
-                // 
-                // if you were an early adopter of Azure4Alexa, you'll need to update the IntentSchema and Sample Utterances
-                // in the Alexa Config Portal.  Copy and Paste again the contents of Outlook/Registration/AlexaIntentSchema.json and
-                // Outlook/Registration/AlexaSampleUtterances.txt into the Alexa Config Portal under "Interaction Model" for your
-                // skill
-
-                // nezt uncomment the case statement below
-
-                // then unlink/link your skill and sign in again
-
-                //case ("OutlookCalendarIntent"):
-                //    return await Outlook.Calendar.GetOutlookEventCount(session, httpClient);
-
-                // If you're feeling really lucky:
-                // call the Microsoft Groove Music API using pre-created intents provided by Alexa
-
-                //case ("AMAZON.ChooseAction<object@MusicCreativeWork>"):
-                //    return await Groove.Music.PlayGrooveMusic(session, httpClient, intentRequest);
-
-                // pre-created intents provided by Alexa don't work (well) with playlists, so we 
-                // created this one below to handle things
-
-                //case ("PlaylistPlay"):
-                //    return await Groove.Music.PlayGroovePlaylist(session, httpClient, intentRequest);
-
+                case "AMAZON.FallbackIntent":
+                    return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
+                            new AlexaUtils.SimpleIntentResponse() { cardText = "Decider received the Fallback Intent" }, true)); 
+                    
+             
                 // add your own intent handler
 
                 // case ("YourCustomIntent"):
@@ -271,7 +236,7 @@ namespace Azure4Alexa.Alexa
         {
             // called by OnLaunchAsync - when the user invokes your skill without an intent
             // called by OnIntentAsync if you forget to map an intent to an action
-
+            Trace.TraceInformation("In GetOnLaunchAsyncResult, about to send botframework \'Hello\'");
             string resp = SendToBotFramework(session.SessionId, "hello");
             return AlexaUtils.BuildSpeechletResponse(new AlexaUtils.SimpleIntentResponse() { cardText = resp }, false);
         }

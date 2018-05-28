@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace AlexaSkillsKit.Slu
 {
@@ -15,6 +16,7 @@ namespace AlexaSkillsKit.Slu
         /// <param name="json"></param>
         /// <returns></returns>
         public static Intent FromJson(JObject json) {
+            Trace.TraceInformation($"Creating intent from json {json.ToString()}");
             var slots = new Dictionary<string, Slot>();
             if (json["slots"] != null && json.Value<JObject>("slots").HasValues) {
                 foreach (var slot in json.Value<JObject>("slots").Children()) {
