@@ -46,8 +46,6 @@ namespace Azure4Alexa.Alexa
         private DirectLineClient dlClient;
         private static string directLineSecret = "odJ5VKzB8oY.cwA.9E0.IkVvS809oGsfqJPFTe4kui6sYWbPXqUbSTUnLncIn_U";
         private static string botId = "sftsrc";
-      // SG  private static string directLineSecret = "kojbPat0SZU.cwA.OUY.I0CO3yQyv_Ij3qtwEolPNOI6c09jI3LavJy5CaOKPgI";
-      // SG  private static string botId = "padnug07";
         private string fromUser = "DirectLineSampleClientUser";
         private ChannelAccount from;
 
