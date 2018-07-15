@@ -73,7 +73,7 @@ namespace Azure4Alexa.Alexa
         {
             // this function is invoked when a user ends a session with your skill
             // this is a chance to save user data at the end of a session
-
+            
             // if the inbound request doesn't include your Alexa Skills AppId or you haven't updated your
             // code to include the correct AppId, return a visual and vocal error and do no more
             // Update the AppId variable in AlexaConstants.cs to resolve this issue
@@ -113,24 +113,18 @@ namespace Azure4Alexa.Alexa
 
         string SendToBotFramework(string sessionId, string text)
         {
-            Trace.TraceInformation($"SendToBotFramework called with text {text}");
             dlClient = new DirectLineClient(directLineSecret);
             if (!conversations.ContainsKey(sessionId))
             {
                 // start a new conversation
-                Trace.TraceInformation($"SendToBotFramework calling StartConversation");
                 conversations[sessionId] = dlClient.Conversations.StartConversation();
                 watermarks[sessionId] = null;
             }
             else
             {
-                Trace.TraceInformation($"SendToBotFramework calling ReconnectToConversation");
                 dlClient.Conversations.ReconnectToConversation(conversations[sessionId].ConversationId,
                     watermarks[sessionId]);
             }
-
-            Trace.TraceInformation($"SendToBotFramework constructing a message with text {text}");
-
             Microsoft.Bot.Connector.DirectLine.Activity msg = new Microsoft.Bot.Connector.DirectLine.Activity
             {
                 From = new ChannelAccount(sessionId),
@@ -145,11 +139,6 @@ namespace Azure4Alexa.Alexa
             var activities = from x in activitySet.Activities
                              where x.From.Id == botId
                              select x;
-            Trace.TraceInformation($"Received {activities.Count()} activities from dlClient.Conversations.GetActivities");
-            foreach (var x in activities)
-            {
-                Trace.TraceInformation($"Activity gotten has texxt {x.Text}");
-            }
             return activities.FirstOrDefault().Text;
         }
 
@@ -194,14 +183,10 @@ namespace Azure4Alexa.Alexa
                 case "CatchAllIntent":
                     try
                     {
-                        Debug.WriteLine("In CatchAllIntent!");
-                        Trace.TraceInformation($"In CatchAllIntent, intent is {intentName}");
-                        
-                        Trace.TraceInformation($"In CatchAllIntent, intentRequest.Intent.Slots.Length is {intentRequest.Intent.Slots.Count}");
                         string resp = SendToBotFramework(session.SessionId, intentRequest.Intent.Slots["Search"].Value);
 
                         return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(
-                            new AlexaUtils.SimpleIntentResponse() { cardText = resp }, true)); // false == should NOT end session
+                            new AlexaUtils.SimpleIntentResponse() { cardText = resp }, true)); 
                     } catch (Exception ex)
                     {
                         return await Task.FromResult<SpeechletResponse>(AlexaUtils.BuildSpeechletResponse(

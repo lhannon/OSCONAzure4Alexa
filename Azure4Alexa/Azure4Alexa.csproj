@@ -187,6 +187,7 @@
     </None>
     <None Include="Properties\PublishProfiles\Azure4Alexa20180506090703 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\Azure4AlexaOsconSftSrc - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\Azure4AlexaOsconSftSrc - Web Deploy1.pubxml" />
     <None Include="Properties\PublishProfiles\sftsrcalexa120171213110653 - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
