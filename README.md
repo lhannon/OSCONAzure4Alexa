@@ -1,3 +1,9 @@
+## Modified Azure4Alexa to use DirectLine 
+This repo was cloned from Azure4Alexa https://github.com/tamhinsf/Azure4Alexa. It has been modified to use Microsoft's DirectLine libraries to use a chatbot implemented in Microsoft Bot Framework.
+Published for OSCON 2018.
+
+The rest of this README is copied from Azure4Alexa.
+
 ## Create and Host Alexa Custom Skills for your Amazon Echo using .NET and Azure  
 
 Use your C# and Azure knowledge to create Alexa Custom Skills for your Amazon Echo the comfort of Visual Studio!  Our Azure4Alexa Visual Studio project features the excellent [AlexaSkillsKit.NET](https://github.com/AreYouFreeBusy/AlexaSkillsKit.NET) package and demonstrates how you can accept a user's Alexa request, query a web service, and respond in both visual and spoken form.   
